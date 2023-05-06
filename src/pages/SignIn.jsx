@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-
+import axios from 'axios'
+import {useDispatch} from 'react-redux'
+import { loginFailure, loginStart, loginSuccess } from "../redux/UserSlice";
+import {signInWithPopup} from 'firebase/auth'
+import { auth, provider } from "../firebase/firebase";
+import { async } from "@firebase/util";
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -64,14 +69,37 @@ const Link = styled.span`
 `;
 
 const SignIn = () => {
+const [name,setName]=useState('')
+const [password,setPassword]=useState('')
+const dispatch=useDispatch()
+
+const handleLogin=async(e)=>{
+e.preventDefault()
+dispatch(loginStart())
+try{
+const res=await axios.post("http://localhost:8800/api/v1/auth/signin",{name,password},{withCredentials:true}).then(res=>dispatch(loginSuccess(res.data))).catch(e=>console.log(e))
+}catch(e){
+dispatch(loginFailure())
+}}
+const signInWithGoogle=async()=>{
+  dispatch(loginStart())
+  signInWithPopup(auth,provider)
+  .then((res)=>{axios.post('http://localhost:8800/api/v1/auth/google',{
+    name:res.user.displayName,
+    email:res.user.email,
+    img:res.user.photoURL
+  }).then((res)=>dispatch(loginSuccess(res.data))).catch((e)=>dispatch(loginFailure()))})
+}
   return (
     <Container>
       <Wrapper>
         <Title>Sign in</Title>
         <SubTitle>to continue to LamaTube</SubTitle>
-        <Input placeholder="username" />
-        <Input type="password" placeholder="password" />
-        <Button>Sign in</Button>
+        <Input placeholder="username" name="name" value={name} onChange={(e)=>setName(e.target.value)}/>
+        <Input type="password" placeholder="password" name="password" value={password} onChange={(e)=>setPassword(e.target.value)}/>
+        <Button onClick={handleLogin}>Sign in</Button>
+        <Title>or</Title>
+        <Button onClick={signInWithGoogle}>Sign In With Google</Button>
         <Title>or</Title>
         <Input placeholder="username" />
         <Input placeholder="email" />
@@ -91,3 +119,4 @@ const SignIn = () => {
 };
 
 export default SignIn;
+//2h:02m

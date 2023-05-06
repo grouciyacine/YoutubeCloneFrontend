@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { makeRequest } from "../axios";
+import {format} from 'timeago.js'
 
 const Container = styled.div`
   display: flex;
@@ -35,19 +37,24 @@ const Text = styled.span`
   font-size: 14px;
 `;
 
-const Comment = () => {
+const Comment = ({comment}) => {
+const [channel,setChannel]=useState()
+useEffect(()=>{
+  const getUsers=async()=>{
+    const users=await makeRequest.get(`/user/find/${comment?.userId}`)
+    setChannel(users.data)
+  }
+  getUsers()
+},[comment])
   return (
     <Container>
-      <Avatar src="https://yt3.ggpht.com/yti/APfAmoE-Q0ZLJ4vk3vqmV4Kwp0sbrjxLyB8Q4ZgNsiRH=s88-c-k-c0x00ffffff-no-rj-mo" />
+      <Avatar src={channel?.img} />
       <Details>
         <Name>
-          John Doe <Date>1 day ago</Date>
+          {channel?.name} <Date>{format(comment?.createdAt)}</Date>
         </Name>
         <Text>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Vel, ex
-          laboriosam ipsam aliquam voluptatem perferendis provident modi, sequi
-          tempore reiciendis quod, optio ullam cumque? Quidem numquam sint
-          mollitia totam reiciendis?
+        {comment?.desc}
         </Text>
       </Details>
     </Container>
